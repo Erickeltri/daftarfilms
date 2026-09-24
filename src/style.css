@@ -1,0 +1,273 @@
+/* ===== Variabel & Warna Utama ===== */
+:root {
+  --bg: #0b1120;          /* Warna latar belakang utama */
+  --putih: #131c31;       /* Warna kartu, navbar, & modal login */
+  --teks: #e8edf5;        /* Warna teks utama */
+  --abu: #93a1b8;         /* Warna teks sekunder */
+  --garis: #2c3b58;       /* Garis input & pembatas */
+  --tepi: #25334d;        /* Garis pinggir kartu & tombol */
+  --input: #0b1120;       /* Warna isian form input */
+  --utama: #2563eb;       /* Warna BIRU tombol utama */
+  --utama-gelap: #1d4ed8; /* Biru gelap saat hover */
+  --utama-teks: #ffffff;  /* Warna teks tombol putih */
+  --bahaya: #ff7b7b;      /* Warna pesan error/bahaya */
+  color-scheme: dark;
+}
+
+/* ===== Reset Dasar ===== */
+* { 
+  box-sizing: border-box; 
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--bg);
+  color: var(--teks);
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  line-height: 1.4;
+}
+
+a { 
+  color: inherit; 
+  text-decoration: none; 
+}
+
+button, input, textarea { 
+  font: inherit; 
+}
+
+:focus-visible { 
+  outline: 2px solid var(--utama); 
+  outline-offset: 2px; 
+}
+
+/* ===== Navbar Header ===== */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* Padding: Atas-Bawah 0.9rem, Kiri-Kanan 2rem (atau disesuaikan) */
+  padding: 0.9rem 9.5rem; 
+  background: var(--putih);
+  border-bottom: 1px solid var(--tepi);
+}
+
+.navbar .logo { 
+  font-size: 1.25rem; 
+  font-weight: 700; 
+}
+
+.navbar .judul-tengah { 
+  font-size: 1rem; 
+  font-weight: 700; 
+}
+
+.navbar .kiri, .navbar .kanan { 
+  min-width: 80px; 
+}
+
+.navbar .kanan { 
+  text-align: right; 
+}
+
+/* ===== Tombol ===== */
+.btn {
+  display: inline-block;
+  padding: 0.9rem 0.9rem;
+  border: 1px solid var(--tepi);
+  background: transparent;
+  color: var(--teks);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-radius: 4px;
+  text-align: center;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.btn:hover { 
+  background: var(--tepi); 
+}
+
+.btn-utama { 
+  background: var(--utama); 
+  border-color: var(--utama); 
+  color: var(--utama-teks); 
+}
+
+.btn-utama:hover { 
+  background: var(--utama-gelap); 
+  border-color: var(--utama-gelap); 
+}
+
+/* ===== Layout Halaman Utam & Detail ===== */
+.isi { 
+  max-width: 1000px; 
+  margin: 0 auto; 
+  /* Menambahkan margin-top agar konten turun ke bawah */
+  margin-top: 5rem; 
+  padding: 0 1rem 3rem; 
+}
+
+.isi h1 { 
+  text-align: center; 
+  margin: 0 0 1.5rem; 
+  font-size: 1.5rem; 
+  font-weight: 700;
+}
+
+/* Grid Kartu Film (Desktop 3 Kolom) */
+.grid { 
+  display: grid; 
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 1rem; 
+}
+
+.kartu {
+  background: var(--putih);
+  border: 1px solid var(--tepi);
+  border-radius: 8px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.kartu h2 { 
+  margin: 0; 
+  font-size: 0.9rem; 
+  font-weight: 600; 
+}
+
+.kartu .btn { 
+  width: 100%; 
+}
+
+.gambar {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--garis);
+  border: 1px solid var(--tepi);
+}
+
+/* ===== Khusus Halaman Detail & Form Ringkas ===== */
+.halaman-detail { 
+  max-width: 440px; /* Ukuran container diperkecil */
+  padding-top: 1rem;
+}
+
+.preview { 
+  padding: 0 0 0.75rem 0; 
+  text-align: center; 
+}
+
+/* Gambar detail diperkecil tingginya */
+.preview .gambar { 
+  width: 100%;
+  height: 140px; 
+  object-fit: cover; 
+  border-radius: 8px;
+  margin: 0 auto; 
+}
+
+form.form { 
+  padding: 1rem; 
+  background: var(--putih); 
+  border-radius: 8px; 
+  border: 1px solid var(--tepi); 
+}
+
+.field { 
+  display: block; 
+  margin-bottom: 0.65rem; 
+  font-weight: 600; 
+  font-size: 0.8rem;
+}
+
+.field input[type="text"],
+.field input[type="url"],
+.field input[type="email"],
+.field input[type="password"],
+.field textarea {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--garis);
+  border-radius: 5px;
+  background: var(--input);
+  color: var(--teks);
+  font-size: 0.82rem;
+}
+
+.field textarea { 
+  min-height: 60px; /* Kotak deskripsi lebih tipis */
+  resize: vertical; 
+}
+
+.field input[type="file"] {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.35rem;
+  border: 1px dashed var(--garis);
+  border-radius: 5px;
+  background: var(--input);
+  color: var(--abu);
+  font-size: 0.75rem;
+}
+
+.aksi { 
+  display: flex; 
+  gap: 0.5rem; 
+  border-top: 1px solid var(--tepi); 
+  padding-top: 0.75rem; 
+  margin-top: 0.85rem; 
+}
+
+.aksi .btn {
+  width: 100%;
+}
+
+/* ===== Responsif HP Android & iPhone ===== */
+@media (max-width: 768px) { 
+  .isi {
+    margin-top: 3rem; /* Jarak ke atas lebih sedang di layar HP */
+    padding: 0 0.75rem 2rem;
+  }
+
+  .grid { 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 0.6rem; /* Grid 2 kolom ringkas */
+  }
+
+  .preview .gambar { 
+    height: 120px; /* Di HP gambar dibuat makin pendek pas di layar */
+  }
+  .navbar {
+    padding: 0.75rem 3.25rem; /* Padding lebih kecil di HP */
+  }
+
+}
+
+/* ===== Modal Popup Login ===== */
+dialog[open] {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  width: min(90vw, 360px);
+  background: var(--putih);
+  border: 1px solid var(--tepi);
+  border-radius: 10px;
+  padding: 1.25rem;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+}
