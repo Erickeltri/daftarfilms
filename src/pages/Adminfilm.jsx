@@ -1,245 +1,201 @@
-import React, { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-export default function Adminfilm() {
-  const navigate = useNavigate()
-  
-  // State Data Film
+function Adminfilm() {
   const [films, setFilms] = useState([])
-  const [loading, setLoading] = useState(true)
-  
-  // State Modal Tambah Film
-  const [showModal, setShowModal] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editId, setEditId] = useState(null)
+
+  // State Form
   const [judul, setJudul] = useState('')
   const [gambar, setGambar] = useState('')
   const [trailer, setTrailer] = useState('')
   const [deskripsi, setDeskripsi] = useState('')
 
-  const API_URL = 'https://daftarfilms.vercel.app/api/films'
-
-  // 1. Ambil Data Semua Film dari Vercel
-  const fetchFilms = () => {
-    fetch(API_URL)
-      .then((res) => res.json())
-      .then((data) => {
-        setFilms(data)
-        setLoading(false)
-      })
-      .catch((err) => {
-        console.error('Gagal mengambil data film:', err)
-        setLoading(false)
-      })
-  }
+  const navigate = useNavigate()
 
   useEffect(() => {
+    // Proteksi halaman admin
+    const isAdmin = localStorage.getItem('isAdmin')
+    if (!isAdmin) {
+      navigate('/login')
+      return
+    }
     fetchFilms()
-  }, [])
+  }, [navigate])
 
-  // 2. Tambah Film Baru (POST ke Vercel)
-  const handleTambahFilm = (e) => {
-    e.preventDefault()
-
-    fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ judul, gambar, trailer, deskripsi })
-    })
+  const fetchFilms = () => {
+    fetch('/api/films')
       .then((res) => res.json())
-      .then(() => {
-        alert('Film berhasil ditambahkan!')
-        setJudul('')
-        setGambar('')
-        setTrailer('')
-        setDeskripsi('')
-        setShowModal(false)
-        fetchFilms() // Refresh tabel
-      })
-      .catch((err) => console.error('Gagal menambah film:', err))
+      .then((data) => setFilms(Array.isArray(data) ? data : []))
+      .catch((err) => console.error('Gagal mengambil data:', err))
   }
 
-  // 3. Hapus Film (DELETE ke Vercel)
-  const handleHapusFilm = (id) => {
-    if (window.confirm('Yakin ingin menghapus film ini?')) {
-      fetch(`${API_URL}/${id}`, { method: 'DELETE' })
-        .then(() => {
-          alert('Film berhasil dihapus!')
-          fetchFilms() // Refresh tabel
-        })
-        .catch((err) => console.error('Gagal menghapus film:', err))
+  const handleOpenModal = (film = null) => {
+    if (film) {
+      setEditId(film._id)
+      setJudul(film.judul || '')
+      setGambar(film.gambar || '')
+      setTrailer(film.trailer || '')
+      setDeskripsi(film.deskripsi || '')
+    } else {
+      setEditId(null)
+      setJudul('')
+      setGambar('')
+      setTrailer('')
+      setDeskripsi('')
+    }
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setEditId(null)
+  }
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Ukuran file maksimal 2MB!')
+        return
+      }
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setGambar(reader.result)
+      }
+      reader.readAsDataURL(file)
     }
   }
 
-  return (
-    <>
-      {/* Header Admin sesuai Sketsa Kertas */}
-      <header className="navbar">
-        <div className="kiri">
-          <h1 style={{ margin: 0, fontSize: '1.5rem' }}>Admin</h1>
-        </div>
-        <div className="kanan">
-          <button className="btn" onClick={() => navigate('/')}>
-            LOGOUT
-          </button>
-        </div>
-      </header>
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    const payload = { judul, gambar, trailer, deskripsi }
+    const url = editId ? `/api/films/${editId}` : '/api/films'
+    const method = editId ? 'PUT' : 'POST'
 
-      <main className="isi">
-        {/* Tombol Tambah Film */}
-        <div style={{ textAlign: 'right', marginBottom: '1rem' }}>
-          <button className="btn btn-utama" onClick={() => setShowModal(true)}>
+    fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Gagal menyimpan data')
+        return res.json()
+      })
+      .then(() => {
+        alert(editId ? 'Film berhasil diperbarui!' : 'Film berhasil ditambahkan!')
+        handleCloseModal()
+        fetchFilms()
+      })
+      .catch((err) => alert(err.message))
+  }
+
+  const handleDelete = (id) => {
+    if (window.confirm('Yakin ingin menghapus film ini?')) {
+      fetch(`/api/films/${id}`, { method: 'DELETE' })
+        .then(() => fetchFilms())
+        .catch((err) => console.error('Gagal menghapus:', err))
+    }
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAdmin')
+    navigate('/login')
+  }
+
+  return (
+    <div style={{ padding: '2rem', color: '#fff' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <h2>Kelola Daftar Film</h2>
+        <div>
+          <button className="btn" style={{ marginRight: '10px' }} onClick={() => handleOpenModal()}>
             + Tambah
           </button>
+          <button className="btn" style={{ background: '#e53e3e' }} onClick={handleLogout}>
+            Logout
+          </button>
         </div>
+      </div>
 
-        {/* Tabel Data Film */}
-        {loading ? (
-          <div style={{ textAlign: 'center', color: '#fff', margin: '2rem 0' }}>
-            Loading data film...
-          </div>
-        ) : (
-          <table
-            style={{
-              width: '100%',
-              borderCollapse: 'collapse',
-              background: 'var(--putih)',
-              borderRadius: '8px',
-              overflow: 'hidden'
-            }}
-          >
-            <thead>
-              <tr style={{ background: 'var(--tepi)', textAlign: 'left' }}>
-                <th style={{ padding: '0.75rem', border: '1px solid var(--garis)' }}>Judul</th>
-                <th style={{ padding: '0.75rem', border: '1px solid var(--garis)' }}>Gambar</th>
-                <th style={{ padding: '0.75rem', border: '1px solid var(--garis)' }}>Trailer</th>
-                <th style={{ padding: '0.75rem', border: '1px solid var(--garis)' }}>Deskripsi</th>
-                <th style={{ padding: '0.75rem', border: '1px solid var(--garis)', textAlign: 'center' }}>Aksi</th>
+      {/* Tabel Data Film */}
+      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+        <thead>
+          <tr style={{ borderBottom: '1px solid #444' }}>
+            <th style={{ padding: '10px' }}>Judul</th>
+            <th style={{ padding: '10px' }}>Gambar</th>
+            <th style={{ padding: '10px' }}>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {films.length === 0 ? (
+            <tr>
+              <td colSpan="3" style={{ textAlign: 'center', padding: '20px' }}>
+                Belum ada data film.
+              </td>
+            </tr>
+          ) : (
+            films.map((item) => (
+              <tr key={item._id} style={{ borderBottom: '1px solid #333' }}>
+                <td style={{ padding: '10px' }}>{item.judul}</td>
+                <td style={{ padding: '10px' }}>
+                  {item.gambar && <img src={item.gambar} alt={item.judul} style={{ width: '50px', height: '70px', objectFit: 'cover' }} />}
+                </td>
+                <td style={{ padding: '10px' }}>
+                  <button className="btn" style={{ marginRight: '5px', padding: '4px 8px' }} onClick={() => handleOpenModal(item)}>
+                    Edit
+                  </button>
+                  <button className="btn" style={{ background: '#e53e3e', padding: '4px 8px' }} onClick={() => handleDelete(item._id)}>
+                    Hapus
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {films.length === 0 ? (
-                <tr>
-                  <td colSpan="5" style={{ padding: '1rem', textAlign: 'center' }}>
-                    Belum ada data film.
-                  </td>
-                </tr>
-              ) : (
-                films.map((film) => (
-                  <tr key={film._id}>
-                    <td style={{ padding: '0.75rem', border: '1px solid var(--garis)' }}>{film.judul}</td>
-                    <td style={{ padding: '0.75rem', border: '1px solid var(--garis)' }}>
-                      <img
-                        src={film.gambar}
-                        alt={film.judul}
-                        style={{ width: '70px', height: '45px', objectFit: 'cover', borderRadius: '4px' }}
-                      />
-                    </td>
-                    <td style={{ padding: '0.75rem', border: '1px solid var(--garis)', fontSize: '0.8rem' }}>
-                      {film.trailer}
-                    </td>
-                    <td style={{ padding: '0.75rem', border: '1px solid var(--garis)', fontSize: '0.8rem' }}>
-                      {film.deskripsi}
-                    </td>
-                    <td style={{ padding: '0.75rem', border: '1px solid var(--garis)', textAlign: 'center' }}>
-                      <button
-                        className="btn"
-                        style={{ borderColor: 'red', color: 'red' }}
-                        onClick={() => handleHapusFilm(film._id)}
-                      >
-                        Hapus
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        )}
+            ))
+          )}
+        </tbody>
+      </table>
 
-        {/* Modal Pop-up Form Tambah Film */}
-        {showModal && (
-          <dialog open>
-            <h2>Tambah Film</h2>
-            <form onSubmit={handleTambahFilm}>
-              <label className="field">
-                Judul Film
-                <input
-                  type="text"
-                  placeholder="Masukkan judul film"
-                  value={judul}
-                  onChange={(e) => setJudul(e.target.value)}
-                  required
-                />
-              </label>
+      {/* Modal Popup Form */}
+      {isModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#1a202c', padding: '2rem', borderRadius: '8px', width: '400px', maxWidth: '90%' }}>
+            <h3>{editId ? 'Edit Film' : 'Tambah Film'}</h3>
+            <form onSubmit={handleSubmit}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label>Judul Film</label>
+                <input type="text" value={judul} onChange={(e) => setJudul(e.target.value)} required style={{ width: '100%', padding: '8px', marginTop: '4px' }} />
+              </div>
 
-              <label className="field">
-  Upload Foto Gambar
-  <input
-    type="file"
-    accept="image/*"
-    onChange={(e) => {
-      const file = e.target.files[0]
-      if (file) {
-        // Cek ukuran file (maksimal 2MB agar MongoDB tidak berat)
-        if (file.size > 2 * 1024 * 1024) {
-          alert('Ukuran file terlalu besar! Maksimal 2MB.')
-          return
-        }
+              <div style={{ marginBottom: '1rem' }}>
+                <label>Upload Foto Gambar</label>
+                <input type="file" accept="image/*" onChange={handleFileChange} required={!editId} style={{ width: '100%', marginTop: '4px' }} />
+                {gambar && <img src={gambar} alt="Preview" style={{ width: '80px', marginTop: '10px', borderRadius: '4px' }} />}
+              </div>
 
-        const reader = new FileReader()
-        reader.onloadend = () => {
-          setGambar(reader.result) // Mengubah file gambar ke string Base64
-        }
-        reader.readAsDataURL(file)
-      }
-    }}
-    required={!editId} // Wajib diisi jika tambah baru
-  />
-</label>
+              <div style={{ marginBottom: '1rem' }}>
+                <label>URL Trailer (YouTube Embed)</label>
+                <input type="url" value={trailer} onChange={(e) => setTrailer(e.target.value)} placeholder="https://www.youtube.com/embed/..." style={{ width: '100%', padding: '8px', marginTop: '4px' }} />
+              </div>
 
-{/* Preview Gambar Sebelum Disimpan */}
-{gambar && (
-  <div style={{ marginTop: '10px' }}>
-    <img
-      src={gambar}
-      alt="Preview"
-      style={{ width: '100px', height: '140px', objectFit: 'cover', borderRadius: '6px' }}
-    />
-  </div>
-)}
+              <div style={{ marginBottom: '1rem' }}>
+                <label>Deskripsi</label>
+                <textarea value={deskripsi} onChange={(e) => setDeskripsi(e.target.value)} rows="3" style={{ width: '100%', padding: '8px', marginTop: '4px' }}></textarea>
+              </div>
 
-              <label className="field">
-                URL Trailer
-                <input
-                  type="url"
-                  placeholder="https://..."
-                  value={trailer}
-                  onChange={(e) => setTrailer(e.target.value)}
-                  required
-                />
-              </label>
-
-              <label className="field">
-                Deskripsi
-                <textarea
-                  placeholder="Masukkan deskripsi ringkas"
-                  value={deskripsi}
-                  onChange={(e) => setDeskripsi(e.target.value)}
-                  required
-                />
-              </label>
-
-              <div className="aksi">
-                <button type="button" className="btn" onClick={() => setShowModal(false)}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" onClick={handleCloseModal} style={{ padding: '8px 16px', background: '#718096', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                   Batal
                 </button>
-                <button type="submit" className="btn btn-utama">
+                <button type="submit" style={{ padding: '8px 16px', background: '#3182ce', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                   Simpan
                 </button>
               </div>
             </form>
-          </dialog>
-        )}
-      </main>
-    </>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
+
+export default Adminfilm
