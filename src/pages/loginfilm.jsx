@@ -7,19 +7,21 @@ export default function LoginFilm() {
   const [password, setPassword] = useState('')
 
   const handleLogin = (e) => {
-    e.preventDefault()
+  e.preventDefault()
 
-    // Mengambil nilai username & password dari Environment Variables Vite
-    const ADMIN_USER = import.meta.env.VITE_ADMIN_USER
-    const ADMIN_PWD = import.meta.env.VITE_ADMIN_PWD
+  // Ambil nilai dari Environment Variables Vite atau gunakan fallback default
+  const ADMIN_USER = import.meta.env.VITE_ADMIN_USER || 'admin'
+  const ADMIN_PWD = import.meta.env.VITE_ADMIN_PWD || 'w7awcvS48IT2M61X'
 
-    if (username === ADMIN_USER && password === ADMIN_PWD) {
-      alert('Login berhasil!')
-      navigate('/admin')
-    } else {
-      alert('Username atau kata sandi salah!')
-    }
+  if (username === ADMIN_USER && password === ADMIN_PWD) {
+    // Simpan status login di localStorage agar halaman Admin tidak terpental
+    localStorage.setItem('isAdmin', 'true')
+    alert('Login berhasil!')
+    navigate('/admin')
+  } else {
+    alert('Username atau kata sandi salah!')
   }
+}
 
   return (
     <dialog open>
