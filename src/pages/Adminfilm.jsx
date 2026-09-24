@@ -172,15 +172,40 @@ export default function Adminfilm() {
               </label>
 
               <label className="field">
-                URL Gambar
-                <input
-                  type="url"
-                  placeholder="https://..."
-                  value={gambar}
-                  onChange={(e) => setGambar(e.target.value)}
-                  required
-                />
-              </label>
+  Upload Foto Gambar
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => {
+      const file = e.target.files[0]
+      if (file) {
+        // Cek ukuran file (maksimal 2MB agar MongoDB tidak berat)
+        if (file.size > 2 * 1024 * 1024) {
+          alert('Ukuran file terlalu besar! Maksimal 2MB.')
+          return
+        }
+
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          setGambar(reader.result) // Mengubah file gambar ke string Base64
+        }
+        reader.readAsDataURL(file)
+      }
+    }}
+    required={!editId} // Wajib diisi jika tambah baru
+  />
+</label>
+
+{/* Preview Gambar Sebelum Disimpan */}
+{gambar && (
+  <div style={{ marginTop: '10px' }}>
+    <img
+      src={gambar}
+      alt="Preview"
+      style={{ width: '100px', height: '140px', objectFit: 'cover', borderRadius: '6px' }}
+    />
+  </div>
+)}
 
               <label className="field">
                 URL Trailer
